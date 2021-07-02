@@ -1,16 +1,15 @@
-`include "mycpu.h"
 module cp0(
     input clk,
     input rst,
     
     // Exception
-    input es_ex,
-    input es_ex_tlb,
-    input es_bd,
+    input wb_ex,
+    input wb_ex_tlb,
+    input wb_bd,
     input eret_flush,
-    input [4:0] es_exccode,
-    input [31:0] es_pc,
-    input [31:0] es_badvaddr,
+    input [4:0] wb_exccode,
+    input [31:0] wb_pc,
+    input [31:0] wb_badvaddr,
 
     // Write port
     input [4:0] dst,
@@ -40,7 +39,7 @@ module cp0(
     input r_v1,  
 
     // Read port
-	output has_int,
+	output has_int,      //Luoshan?
     output [31:0] rdata,
     output reg [31:0] cp0_epc,
     output [31:0] cp0_entryhi,
@@ -50,20 +49,17 @@ module cp0(
     
 );
 
-localparam REG_INDEX    = 0;
-localparam REG_ENTRYLO0 = 2;
-localparam REG_ENTRYLO1 = 3;
-localparam REG_BADVADDR = 8;
-localparam REG_COUNT    = 9;
-localparam REG_ENTRYHI  = 10;
-localparam REG_COMPARE  = 11;
 localparam REG_STATUS   = 12;
 localparam REG_CAUSE    = 13;
 localparam REG_EPC      = 14;
-localparam REG_CONFIG   = 16;
+localparam REG_COUNT    = 9;
+localparam REG_COMPARE  = 11;
+localparam REG_BADVADDR = 8;
+localparam REG_ENTRYHI  = 10;
+localparam REG_ENTRYLO0 = 2;
+localparam REG_ENTRYLO1 = 3;
+localparam REG_INDEX    = 0;
 
-localparam SEL_CONFIG0  = 0;
-localparam SEL_CONFIG1  = 1;
 
 wire cp0_count_eq;
 // STATUS
@@ -122,7 +118,7 @@ end
 always @(posedge clk) begin
     if (rst)
         cp0_status_exl <= 1'b0;
-    else if (es_ex)
+    else if (wb_ex)
         cp0_status_exl <= 1'b1;
     else if (eret_flush)
         cp0_status_exl <= 1'b0;
@@ -150,8 +146,8 @@ assign cp0_cause = { cp0_cause_bd, //31:31
 always @(posedge clk) begin
     if (rst)
         cp0_cause_bd <= 1'b0;
-    else if (es_ex && !cp0_status_exl)
-        cp0_cause_bd <= es_bd;
+    else if (wb_ex && !cp0_status_exl)
+        cp0_cause_bd <= wb_bd;
 end
 
 always @(posedge clk) begin
@@ -182,21 +178,21 @@ end
 always @(posedge clk) begin
     if (rst)
         cp0_cause_exccode <= 5'b0;
-    else if (es_ex)
-        cp0_cause_exccode <= es_exccode;
+    else if (wb_ex)
+        cp0_cause_exccode <= wb_exccode;
 end
 // EPC
 always @(posedge clk) begin
-    if (es_ex && !cp0_status_exl)
-        cp0_epc <= es_bd ? es_pc - 3'h4 : es_pc;
+    if (wb_ex && !cp0_status_exl)
+        cp0_epc <= wb_bd ? wb_pc - 3'h4 : wb_pc;
     else if (mtc0_we && dst == REG_EPC)
         cp0_epc <= data;
 end
 
 // Badvaddr
 always @(posedge clk) begin
-    if (es_ex && (es_exccode == `EX_ADEL || es_exccode == `EX_ADES))
-        cp0_badvaddr <= es_badvaddr;
+    if (wb_ex && (wb_exccode == `EX_ADEL || wb_exccode == `EX_ADES))
+        cp0_badvaddr <= wb_badvaddr;
 end
 // Count
 reg tick;
@@ -226,8 +222,8 @@ assign cp0_entryhi = { cp0_entryhi_vpn2,
 always @(posedge clk) begin
     if (rst)
         cp0_entryhi_vpn2 <= 19'b0;
-    else if (es_ex_tlb)
-        cp0_entryhi_vpn2 <= es_badvaddr[31:13];
+    else if (wb_ex_tlb)
+        cp0_entryhi_vpn2 <= wb_badvaddr[31:13];
     else if (mtc0_we && dst == REG_ENTRYHI)
         cp0_entryhi_vpn2 <= data[31:13];
     else if (tlbr)
@@ -373,50 +369,16 @@ always @(posedge clk) begin
         cp0_index_index <= index;
 end
 
-assign rdata = ({32{dst == REG_EPC	   }} & cp0_epc      ) |
-               ({32{dst == REG_STATUS  }} & cp0_status   ) |
-               ({32{dst == REG_CAUSE   }} & cp0_cause    ) |
-               ({32{dst == REG_COUNT   }} & cp0_count    ) |
-               ({32{dst == REG_BADVADDR}} & cp0_badvaddr ) |
-               ({32{dst == REG_ENTRYHI }} & cp0_entryhi  ) |
-               ({32{dst == REG_INDEX   }} & cp0_index    ) |
-               ({32{dst == REG_ENTRYLO0}} & cp0_entrylo0 ) |
-               ({32{dst == REG_ENTRYLO1}} & cp0_entrylo1 ) |
-               ({32{dst == REG_CONFIG && sel == SEL_CONFIG0}} & config0 ) |
-               ({32{dst == REG_CONFIG && sel == SEL_CONFIG1}} & config1 ) |
-               ({32{dst == REG_ENTRYLO1}} & cp0_entrylo1 ) |
-               ({32{dst == REG_COMPARE }} & cp0_compare  ) ;
+assign rdata = (dst == REG_EPC     ) ? cp0_epc      :
+               (dst == REG_STATUS  ) ? cp0_status   :
+               (dst == REG_CAUSE   ) ? cp0_cause    :
+               (dst == REG_COUNT   ) ? cp0_count    :
+               (dst == REG_BADVADDR) ? cp0_badvaddr :
+               (dst == REG_ENTRYHI ) ? cp0_entryhi  :
+               (dst == REG_INDEX   ) ? cp0_index    :
+               (dst == REG_ENTRYLO0) ? cp0_entrylo0 :
+               (dst == REG_ENTRYLO1) ? cp0_entrylo1 :
+               (dst == REG_COMPARE ) ? cp0_compare  : 32'h0;
 			   
 assign has_int = ((cp0_cause_ip[7:0] & cp0_status_im[7:0]) != 8'h00) && cp0_status_ie && !cp0_status_exl;
-
-// Config0
-reg  [ 2:0] config0_k0;
-wire [31:0] config0;
-
-always @(posedge clk) begin
-	if (rst)
-		config0_k0 <= 3'd2;
-	else if (mtc0_we && dst == REG_CONFIG && sel == SEL_CONFIG0)
-		config0_k0 <= data[2:0];
-end
-
-assign config0 = {1'b1,
-				  15'b0,
-				  1'b0,
-				  2'b0,
-				  3'b0,
-				  3'b1,
-				  4'b0,
-				  config0_k0};
-
-wire [31:0] config1;
-assign config1 = {1'b0,
-				  6'd`TLBNUM - 1'b1,
-				  `ICACHELINE,
-				  3'h4,
-				  `ICACHECONN,
-				  `DCACHELINE,
-				  3'h4,
-				  `DCACHECONN,
-				  7'b0};
 endmodule

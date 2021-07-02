@@ -56,17 +56,17 @@ module tlb
 );
 
 // PTEs
-(* max_fanout = "10" *)reg [   18:0] tlb_vpn2     [TLBNUM - 1:0];
-(* max_fanout = "10" *)reg [    7:0] tlb_asid     [TLBNUM - 1:0];
-(* max_fanout = "10" *)reg           tlb_g        [TLBNUM - 1:0];
-(* max_fanout = "10" *)reg [   19:0] tlb_pfn0     [TLBNUM - 1:0];
-(* max_fanout = "10" *)reg [    2:0] tlb_c0       [TLBNUM - 1:0];
-(* max_fanout = "10" *)reg           tlb_d0       [TLBNUM - 1:0];
-(* max_fanout = "10" *)reg           tlb_v0       [TLBNUM - 1:0];
-(* max_fanout = "10" *)reg [   19:0] tlb_pfn1     [TLBNUM - 1:0];
-(* max_fanout = "10" *)reg [    2:0] tlb_c1       [TLBNUM - 1:0];
-(* max_fanout = "10" *)reg           tlb_d1       [TLBNUM - 1:0];
-(* max_fanout = "10" *)reg           tlb_v1       [TLBNUM - 1:0];
+reg [   18:0] tlb_vpn2     [TLBNUM - 1:0];
+reg [    7:0] tlb_asid     [TLBNUM - 1:0];
+reg           tlb_g        [TLBNUM - 1:0];
+reg [   19:0] tlb_pfn0     [TLBNUM - 1:0];
+reg [    2:0] tlb_c0       [TLBNUM - 1:0];
+reg           tlb_d0       [TLBNUM - 1:0];
+reg           tlb_v0       [TLBNUM - 1:0];
+reg [   19:0] tlb_pfn1     [TLBNUM - 1:0];
+reg [    2:0] tlb_c1       [TLBNUM - 1:0];
+reg           tlb_d1       [TLBNUM - 1:0];
+reg           tlb_v1       [TLBNUM - 1:0];
 
 wire [TLBNUM - 1:0] s0_match;
 wire [TLBNUM - 1:0] s1_match;

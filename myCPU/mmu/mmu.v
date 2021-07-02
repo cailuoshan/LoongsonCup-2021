@@ -1,4 +1,0 @@
-module mmu(
-);
-
-endmodule
