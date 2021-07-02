@@ -1,0 +1,263 @@
+stages:
+  - bhv_sim
+  - bit_gen
+  - system_bit_gen
+variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+
+default:
+  image: gitlab.agileserve.org.cn:15050/landonwong/vivado-ci-tools/vivado-201902-vnc-ci-multistage:4
+  tags: 
+  - k8s-test
+  before_script:
+  - source ${XILINX_LOCATION}/Vivado/2019.2/settings64.sh
+  - mv loongsoncup-func-workflow test-for-loongson-cup
+  - rm test-for-loongson-cup/soc_axi_func/rtl/myCPU -rf
+  - cp myCPU test-for-loongson-cup/soc_axi_func/rtl/myCPU -r
+  - rm loongsoncup-workflow/soc_axi_perf/rtl/myCPU -rf
+  - cp myCPU loongsoncup-workflow/soc_axi_perf/rtl/myCPU -r
+  - rm loongsoncup-system-workflow/rtl/myCPU -rf
+  - cp myCPU loongsoncup-system-workflow/rtl/myCPU -r
+
+bhv_sim_func:
+  stage: bhv_sim
+  script:
+    - sed -i '3i\`define USE_TLB 1' test-for-loongson-cup/soc_axi_func/rtl/myCPU/include/mycpu.h
+    - cd test-for-loongson-cup/scripts
+    - make run_sim
+  timeout: 48 hours
+  artifacts:
+    name: "$CI_JOB_STAGE-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    when: always
+    paths:
+      - test-for-loongson-cup/scripts/sim.log
+
+bhv_sim_func_notlb:
+  stage: bhv_sim
+  script:
+    - cd test-for-loongson-cup/scripts
+    - make run_sim
+  timeout: 48 hours
+  artifacts:
+    name: "$CI_JOB_STAGE-notlb-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    when: always
+    paths:
+      - test-for-loongson-cup/scripts/sim.log
+
+bhv_sim_perf:
+  stage: bhv_sim
+  script:
+    - sed -i '3i\`define USE_TLB 1' loongsoncup-workflow/soc_axi_perf/rtl/myCPU/include/mycpu.h
+    - cd loongsoncup-workflow/scripts
+    - make run_sim
+  timeout: 24 hour
+
+bhv_sim_perf_notlb:
+  stage: bhv_sim
+  script:
+    - cd loongsoncup-workflow/scripts
+    - make run_sim
+  timeout: 24 hour
+
+#bit_gen_60:
+#  stage: bit_gen
+#  needs: []
+#  script:
+#    - cp macro.h loongsoncup-workflow/soc_axi_perf/rtl/myCPU/.
+#    - cd loongsoncup-workflow/scripts
+#    - make freq=60 bit_gen
+#    - grep -A 8 'Design Timing Summary' ../soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+#  timeout: 24 hour
+#  artifacts:
+#    name: "$CI_JOB_STAGE-60-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+#    when: always
+#    paths:
+#      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top.bit
+#      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+
+bit_gen_70:
+  stage: bit_gen
+  needs: []
+  script:
+    - sed -i '3i\`define USE_TLB 1' loongsoncup-workflow/soc_axi_perf/rtl/myCPU/include/mycpu.h
+    - cd loongsoncup-workflow/scripts
+    - make freq=70 bit_gen
+    - grep -A 8 'Design Timing Summary' ../soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+  timeout: 24 hour
+  artifacts:
+    name: "$CI_JOB_STAGE-70-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    when: always
+    paths:
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top.bit
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+
+bit_gen_80:
+  stage: bit_gen
+  needs: []
+  script:
+    - sed -i '3i\`define USE_TLB 1' loongsoncup-workflow/soc_axi_perf/rtl/myCPU/include/mycpu.h
+    - cd loongsoncup-workflow/scripts
+    - make freq=80 bit_gen
+    - grep -A 8 'Design Timing Summary' ../soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+  timeout: 24 hour
+  artifacts:
+    name: "$CI_JOB_STAGE-80-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    when: always
+    paths:
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top.bit
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+
+bit_gen_90:
+  stage: bit_gen
+  needs: []
+  script:
+    - sed -i '3i\`define USE_TLB 1' loongsoncup-workflow/soc_axi_perf/rtl/myCPU/include/mycpu.h
+    - cd loongsoncup-workflow/scripts
+    - make freq=90 bit_gen
+    - grep -A 8 'Design Timing Summary' ../soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+  timeout: 24 hour
+  artifacts:
+    name: "$CI_JOB_STAGE-90-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    when: always
+    paths:
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top.bit
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+      
+bit_gen_100:
+  stage: bit_gen
+  needs: []
+  script:
+    - sed -i '3i\`define USE_TLB 1' loongsoncup-workflow/soc_axi_perf/rtl/myCPU/include/mycpu.h
+    - cd loongsoncup-workflow/scripts
+    - make freq=100 bit_gen
+    - grep -A 8 'Design Timing Summary' ../soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+  timeout: 24 hour
+  artifacts:
+    name: "$CI_JOB_STAGE-100-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    when: always
+    paths:
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top.bit
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+      
+bit_gen_110:
+  stage: bit_gen
+  needs: []
+  script:
+    - sed -i '3i\`define USE_TLB 1' loongsoncup-workflow/soc_axi_perf/rtl/myCPU/include/mycpu.h
+    - cd loongsoncup-workflow/scripts
+    - make freq=110 bit_gen
+    - grep -A 8 'Design Timing Summary' ../soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+  timeout: 24 hour
+  artifacts:
+    name: "$CI_JOB_STAGE-110-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    when: always
+    paths:
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top.bit
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+      
+bit_gen_120:
+  stage: bit_gen
+  needs: []
+  script:
+    - sed -i '3i\`define USE_TLB 1' loongsoncup-workflow/soc_axi_perf/rtl/myCPU/include/mycpu.h
+    - cd loongsoncup-workflow/scripts
+    - make freq=120 bit_gen
+    - grep -A 8 'Design Timing Summary' ../soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+  timeout: 24 hour
+  artifacts:
+    name: "$CI_JOB_STAGE-120-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    when: always
+    paths:
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top.bit
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+
+bit_gen_80_notlb:
+  stage: bit_gen
+  needs: []
+  script:
+#    - cp macro.h loongsoncup-workflow/soc_axi_perf/rtl/myCPU/.
+    - cd loongsoncup-workflow/scripts
+    - make freq=80 bit_gen
+    - grep -A 8 'Design Timing Summary' ../soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+  timeout: 24 hour
+  artifacts:
+    name: "$CI_JOB_STAGE-80-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    when: always
+    paths:
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top.bit
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+
+bit_gen_90_notlb:
+  stage: bit_gen
+  needs: []
+  script:
+#    - cp macro.h loongsoncup-workflow/soc_axi_perf/rtl/myCPU/.
+    - cd loongsoncup-workflow/scripts
+    - make freq=90 bit_gen
+    - grep -A 8 'Design Timing Summary' ../soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+  timeout: 24 hour
+  artifacts:
+    name: "$CI_JOB_STAGE-90-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    when: always
+    paths:
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top.bit
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+      
+bit_gen_100_notlb:
+  stage: bit_gen
+  needs: []
+  script:
+    - cd loongsoncup-workflow/scripts
+    - make freq=100 bit_gen
+    - grep -A 8 'Design Timing Summary' ../soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+  timeout: 24 hour
+  artifacts:
+    name: "$CI_JOB_STAGE-100-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    when: always
+    paths:
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top.bit
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+      
+bit_gen_110_notlb:
+  stage: bit_gen
+  needs: []
+  script:
+#    - cp macro.h loongsoncup-workflow/soc_axi_perf/rtl/myCPU/.
+    - cd loongsoncup-workflow/scripts
+    - make freq=110 bit_gen
+    - grep -A 8 'Design Timing Summary' ../soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+  timeout: 24 hour
+  artifacts:
+    name: "$CI_JOB_STAGE-110-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    when: always
+    paths:
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top.bit
+      - loongsoncup-workflow/soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+      
+bit_gen_120_notlb:
+  stage: bit_gen
+  needs: []
+  script:
+#    - cp macro.h loongsoncup-workflow/soc_axi_perf/rtl/myCPU/.
+    - cd loongsoncup-workflow/scripts
+    - make freq=120 bit_gen
+    - grep -A 8 'Design Timing Summary' ../soc_axi_perf/run_vivado/mycpu_prj1/mycpu.runs/impl_1/soc_axi_lite_top_timing_summary_routed.rpt
+  timeout: 24 hour
+  artifacts:
+    name: "$CI_JOB_STAGE-120-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    when: always
+    
+bit_gen:
+  stage: system_bit_gen
+  needs: []
+  script:
+    - cd loongsoncup-system-workflow/scripts
+    - make bit_gen
+    - grep -A 8 'Design Timing Summary' ../run_vivado/project_1/project_1.runs/impl_1/soc_up_top_timing_summary_routed.rpt
+  timeout: 24 hour
+  artifacts:
+    name: "$CI_JOB_STAGE-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA"
+    when: always
+    paths:
+      - loongsoncup-system-workflow/run_vivado/project_1/project_1.runs/impl_1/soc_up_top.bit
+      - loongsoncup-system-workflow/run_vivado/project_1/project_1.runs/impl_1/soc_up_top_timing_summary_routed.rpt

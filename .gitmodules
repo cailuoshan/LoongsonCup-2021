@@ -1,0 +1,9 @@
+[submodule "flow"]
+	path = loongsoncup-workflow
+	url = ../../ucas-loongsoncup-2021/loongsoncup-workflow.git
+[submodule "func"]
+	path = loongsoncup-func-workflow
+	url = ../../ucas-loongsoncup-2021/loongsoncup-func-workflow.git
+[submodule "system"]
+	path = loongsoncup-system-workflow
+	url = ../../ucas-loongsoncup-2021/loongsoncup-system-workflow.git
